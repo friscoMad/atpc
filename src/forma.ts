@@ -3,6 +3,8 @@ import { createReadStream } from 'fs';
 
 import { validateAxiosStatus } from './utils.js';
 
+const baseUrl = new URL('https://api.joinforma.com/client/api/')
+
 interface Benefit {
   id: string;
   name: string;
@@ -168,6 +170,61 @@ export const getBenefitsWithCategories = async (
     }),
   );
 };
+
+interface Transaction {
+  id: string;
+  amount: number;
+  transaction_date: Date;
+  title: string;
+  transaction_type: string;
+  transaction_subtype: string;
+}
+
+interface TransactionsResponse {
+  success: boolean,
+  data: {
+    employee_wallet_transactions: Array<Transaction>;
+    count: number,
+    limit: number,
+    page: number
+  };
+}
+
+export const getTransactions = async (accessToken: string, benefit_id: string, from: Date, to: Date): Promise<Transaction[]> => {
+  const requestUrl = new URL(`v2/employee-wallets/${benefit_id}/transactions`, baseUrl);
+  requestUrl.search = new URLSearchParams({
+    page: '0',
+    limit: '250',
+    sort: '-created',
+    created_after: from.getTime().toString(),
+    created_before: to.getTime().toString(),
+    is_mobile: 'true',
+  }).toString();
+
+  const response = await axios.get(requestUrl.toString(),
+    {
+      headers: {
+        'x-auth-token': accessToken,
+      },
+    },
+  );
+
+  if (response.status !== 200) {
+    throw new Error(
+      `Something went wrong while exchanging magic link for token - expected \`200 OK\` response, got \`${response.status} ${response.statusText}\`.`,
+    );
+  }
+  const parsedResponse = response.data as TransactionsResponse;
+
+  if (!parsedResponse.success) {
+    throw new Error(
+      `Something went wrong while requesting transactions - received a \`200 OK\` response, but the response body indicated that the request was not successful: ${JSON.stringify(
+        parsedResponse,
+      )}`,
+    );
+  }
+  return parsedResponse.data.employee_wallet_transactions;
+}
 
 interface CreateClaimResponse {
   success: boolean;
