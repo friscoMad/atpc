@@ -1,10 +1,10 @@
 import * as commander from 'commander';
 import chalk from 'chalk';
 
-import { actionRunner, prompt } from '../utils.js';
-import { setAccessToken } from '../config.js';
-import { exchangeIdAndTkForAccessToken, requestMagicLink } from '../forma.js';
-import VERSION from '../version.js';
+import { actionRunner, prompt } from '../../utils.js';
+import { setAccessToken } from '../../config.js';
+import { exchangeIdAndTkForAccessToken, requestMagicLink } from '../../forma.js';
+import VERSION from '../../version.js';
 
 const command = new commander.Command();
 

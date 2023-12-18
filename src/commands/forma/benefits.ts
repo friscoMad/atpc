@@ -1,10 +1,10 @@
 import * as commander from 'commander';
 import Table from 'cli-table';
 
-import { actionRunner } from '../utils.js';
-import { getAccessToken } from '../config.js';
-import { getBenefits } from '../forma.js';
-import VERSION from '../version.js';
+import { actionRunner } from '../../utils.js';
+import { getAccessToken } from '../../config.js';
+import { getBenefits } from '../../forma.js';
+import VERSION from '../../version.js';
 
 const command = new commander.Command();
 

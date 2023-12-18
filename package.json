@@ -1,8 +1,8 @@
 {
-  "name": "formanator",
+  "name": "atpc",
   "version": "0.0.0-development",
-  "description": "Submit Forma <https://joinforma.com> claims from the command line",
-  "homepage": "https://github.com/timrogers/formanator",
+  "description": "Affirm Trivial Payroll Checker is an app that processes data from different sources to try to check issues with Affirm Spain payrolls",
+  "homepage": "https://github.com/friscoMad/atpc",
   "type": "module",
   "bin": "dist/index.js",
   "scripts": {
@@ -12,26 +12,29 @@
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix",
     "semantic-release": "semantic-release",
-    "dev": "npx ts-node --esm src/index.ts"
+    "dev": "NODE_TLS_REJECT_UNAUTHORIZED='0' npx ts-node --esm src/index.ts"
   },
   "files": [
     "dist"
   ],
   "keywords": [],
-  "author": "Tim Rogers <me@timrogers.co.uk>",
+  "author": "Ramiro Aparicio <rapariciog@gmail.com>",
+  "contributors": ["Tim Rogers <me@timrogers.co.uk>"],
   "license": "MIT",
   "dependencies": {
     "@fast-csv/parse": "^4.3.6",
+    "@public-js/exchange-rates": "^0.0.2",
     "axios": "^1.4.0",
     "chalk": "^5.3.0",
     "cli-table": "^0.3.11",
     "commander": "^11.0.0",
-    "openai": "^4.7.1",
+    "decimal.js": "^10.4.3",
+    "pdfreader": "^3.0.2",
     "prompt-sync": "^4.2.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/timrogers/formanator.git"
+    "url": "https://github.com/friscoMad/atpc.git"
   },
   "release": {
     "branches": [

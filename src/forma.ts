@@ -3,7 +3,7 @@ import { createReadStream } from 'fs';
 
 import { validateAxiosStatus } from './utils.js';
 
-const baseUrl = new URL('https://api.joinforma.com/client/api/')
+const baseUrl = new URL('https://api.joinforma.com/client/api/');
 
 interface Benefit {
   id: string;
@@ -171,7 +171,7 @@ export const getBenefitsWithCategories = async (
   );
 };
 
-interface Transaction {
+export interface Transaction {
   id: string;
   amount: number;
   transaction_date: Date;
@@ -181,16 +181,21 @@ interface Transaction {
 }
 
 interface TransactionsResponse {
-  success: boolean,
+  success: boolean;
   data: {
     employee_wallet_transactions: Array<Transaction>;
-    count: number,
-    limit: number,
-    page: number
+    count: number;
+    limit: number;
+    page: number;
   };
 }
 
-export const getTransactions = async (accessToken: string, benefit_id: string, from: Date, to: Date): Promise<Transaction[]> => {
+export const getTransactions = async (
+  accessToken: string,
+  benefit_id: string,
+  from: Date,
+  to: Date,
+): Promise<Transaction[]> => {
   const requestUrl = new URL(`v2/employee-wallets/${benefit_id}/transactions`, baseUrl);
   requestUrl.search = new URLSearchParams({
     page: '0',
@@ -201,13 +206,11 @@ export const getTransactions = async (accessToken: string, benefit_id: string, f
     is_mobile: 'true',
   }).toString();
 
-  const response = await axios.get(requestUrl.toString(),
-    {
-      headers: {
-        'x-auth-token': accessToken,
-      },
+  const response = await axios.get(requestUrl.toString(), {
+    headers: {
+      'x-auth-token': accessToken,
     },
-  );
+  });
 
   if (response.status !== 200) {
     throw new Error(
@@ -224,7 +227,7 @@ export const getTransactions = async (accessToken: string, benefit_id: string, f
     );
   }
   return parsedResponse.data.employee_wallet_transactions;
-}
+};
 
 interface CreateClaimResponse {
   success: boolean;

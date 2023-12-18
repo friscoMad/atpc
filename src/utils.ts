@@ -21,3 +21,8 @@ export const serializeError = (e: unknown): string => {
 // This function gets passed the HTTP status code, but we're always going to return true,
 // so we don't need to declare the parameter
 export const validateAxiosStatus = (): boolean => true;
+
+export const dateFormat = new Intl.DateTimeFormat('en-us', {
+  year: '2-digit',
+  month: '2-digit',
+});
