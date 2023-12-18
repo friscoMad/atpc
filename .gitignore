@@ -1,4 +1,6 @@
 node_modules
-fixtures
-claims.csv
 dist
+data/*.json
+data/payroll/*.PDF
+data/payroll/*.pdf
+.DS_Store

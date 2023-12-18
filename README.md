@@ -1,78 +1,90 @@
-# Formanator 🤖
+# ATPC (Affirm Trivial Payroll Checker) 🤖
 
-Formanator allows you to submit benefit claims to [Forma](https://www.joinforma.com/) from the command line, either one-by-one or in bulk.
-
-![Screenshot of running `formanator` from a terminal](https://github.com/timrogers/formanator/assets/116134/2979fda6-415c-4212-9263-7707841a03bf)
+This tool is a collection of small tools that can help "debugging" Affirm payroll issues
 
 ## Installation
 
-To install Formanator, make sure you have [Node.js](https://nodejs.org/en) installed, and then just run:
+To run atpc, make sure you have [Node.js](https://nodejs.org/en) > 18 installed.
+
+To avoid issues with other projects it is recommended to install [NVM](https://github.com/nvm-sh/nvm) but you can use other ways to handle your node versions.
+
+After it is installed you must install version 18 and enable it in the current shell:
 
 ```bash
-npm install -g formanator
+nvm install 18
+nvm use 18
 ```
 
 ## Usage
 
-### Connecting to your Forma account
+### Payroll info
 
-To get started, you'll need to connect Formanator to your Forma account. Here's how the process works:
+This tool reads the PDFs of your payroll, please download all of them (or the ones taht you want to check) and add them to the /data/payroll folder.
+They should follow the original file name of YYYY_MM_DD_...... to be able to parse the correct month associated with the payroll.
 
-1. Run `formanator login`.
+After you have all the files in the proper place then run
+
+```npm run dev payroll -- --pasword XXXX```
+
+Password is your DNI as it is the one needed to open the files.
+That command will parse your payroll files and store all relevant information in a file named payroll.json in the /data folder
+This command needs to be run again every time you add new pdfs to update the json file.
+All check commands use this json file with the information as it is much easier to handle.
+
+### Forma info
+
+All forma commands (including downloading information) need a token to be able to connect to Forma API to get the token the first time (or when you get a 401-403) please do:
+
+1. Run `npm run dev forma login`.
 2. At the prompt, enter your email address, then hit Enter.
 3. You'll be sent an email with a magic link. Go to your inbox and copy the link to your clipboard.
 4. At the prompt, paste your magic link, then hit Enter.
 5. You'll be logged in 🥳
 
-To remember your login, Formanator stores a `.formanator.json` file in your home directory with your access token.
+To remember your login, ATPC stores a `.formanator.json` file in your home directory with your access token.
 
-### Configuring OpenAI for inferring the benefit and category
+Forma commands:
+* login: Gets the authentication token to be able to run other commands
+* benefits: List a table with all the benefits in your account and the current available balance
+* categoreis: List all categories that can be used to report a expense assoaciated with one of the benefits
+* download: Downloads all the movements in the last 36 months (it can be adjusted with ```-- --months XX```)
 
-When submitting a claim, you need to specify a benefit and category for your claim. You can either decide that yourself, or you can have OpenAI do it for you, for a cost of about $0.001 (a tenth of a cent! 🪙) per claim 🧠
+The check wallets command requires all data to be downloaded before it can run: `npm run dev forma download`
 
-If you want to use OpenAI to infer the benefit and category, you'll need to set it up.
+### Checks info
 
-1. Set up an OpenAI account and make sure you either (a) have free trial credit available or (b) have set up a payment method. You can check this on the ["Usage"](https://platform.openai.com/account/usage) page.
-2. Create an [OpenAI API key](https://platform.openai.com/account/api-keys).
-3. Set the API key as the `OPENAI_API_KEY` environment variable, or be prepared to pass the `--openai-api-key` argument to every command.
+Currently 3 checks have been implemented:
 
-### Submitting a single claim
+#### Wallets
 
-1. Figure out what you're planning to claim for.
-2. Make sure you're logged in - for more details, see "Connecting to your Forma account" above.
-3. If you aren't using OpenAI to infer the benefit and category, you'll need to figure this out yourself. Get a list of your available benefits by running `formanator benefits`. Pick the relevant benefit, and then run `formanator categories --benefit <benefit>` to get a list of categories.
-4. Submit your claim by running `formanator submit-claim`. You'll need to pass a bunch of arguments:
+```npm run dev check wallets```
 
-```bash
-formanator submit-claim --amount 2.28 \
-                        --merchant Amazon \
-                        --description "USB cable" \
-                        --purchase-date 2023-01-15 \
-                        # Optionally, you can attach multiple receipts by specifying this argument multiple times
-                        --receipt-path "USB.pdf" \
-                        # If you haven't configured OpenAI, you'll need to specify the benefit and category
-                        --benefit "Remote Life" \
-                        --category "Cables & Cords"
-```
+This will try to match the reported amount in your payroll with the information it Forma, expense cut date is not fixed, this tool uses 14th of each month as the cut date but Affirm will not even do the cutoff on 14 or at the same time.
+This will output a report with the calculated wallet expenses per month and the total in the payroll with a diff between the two.
+As the cut date is impossible to predict usually some expenses are not correctly categorized so it is interesting to check if the diff in one month payroll is fixed the next month.
 
-6. If you've configured OpenAI, you'll be given the chance to check the benefit and category it has inferred
-7. If you confirm the benefit and category by hitting Enter, your claim will be submitted.
+#### Sodexo
 
-### Submiting multiple claims
+```npm run dev check sodexo```
 
-You can submit multiple claims at once by generating a template CSV, filling it in, then submitting the whole CSV.
+This is just a simple reporter that shows the amount of Sodexo food reported in the payroll, as this tool does not connect with Sodexo it is just to be able the see the amount easily.
+If examples are provided I can include other Sodexo related data.
 
-1. Make sure you're logged in - for more details, see "Connecting to your Forma account" above.
-2. Run `formanator generate-template-csv` to generate a CSV template. By default, the template will be saved as `claims.csv`. Optionally, you can specify the `--output-path` argument to choose where to save the template.
-3. If you aren't using OpenAI to infer the benefit and category for each claim, you'll need to figure this out yourself. Get a list of your available benefits by running `formanator benefits`. Pick the relevant benefit, and then run `formanator categories --benefit <benefit>` to get a list of categories.
-4. Update the template, filling in the columns for each of your claims. If you've configured OpenAI, you can leave the `benefit` and `category` blank. If you want to attach multiple receipts, you can add comma-separated paths to the `receipt_path` column.
-5. Validate the CSV up-front by running `formanator validate-csv --input-path claims.csv`.
-6. Submit your claims by running `formanator submit-claims-from-csv --input-path claims.csv`.
-7. If you've configured OpenAI, you'll be given the chance to check the benefit and category it has inferred for each claim.
-8. Your claims will be submitted. If there are any validation errors with any of the rows, or if anything goes wrong during submission, an error message will be displayed, but the tool will continue submitting other claims.
+#### RSU
+
+```npm run dev check rsu```
+or
+```npm run dev check rsu -- --api <api>```
+
+This report does need a your Schawb data to run, you can download it from https://client.schwab.com/app/accounts/history/# select "Equity Award Center" and "Date Range" -> "All" click Search and then click on "Export" on the top of the page, select JSON and store the file in /data, it should be named as "EquityAwards....json" and a single file with that name format should exist in the folder.
+
+This report crosses data from your payroll and schwab and tells you the number of RSUs vested per month how many were sold/kept (and price) based on schwab data and the amount (money)
+reported in your payroll (as sold/kept and as taxes), it also does the calculation of the conversion rate for the payroll info as sold/kept rate should match.
+You can also pass an API token for https://exchangerate.host/ to be able to pull exchange rates for the vesting days and compare it with the calculated ones.
+There is a known issue with how the payroll were created and Affirm has always created the payroll wrong reporting as sold the amount of RSUs that were kept (that ususally is higher) that's why another extra couple of columns is added with the inverted exchange rate as otherwsie it will never match.
 
 ## Contributing
 
-Changes to this project are verioned using [Semantic Versioning](https://semver.org/) and released to `npm` automatically using [`semantic-release`](https://github.com/semantic-release/semantic-release). 
+Changes to this project are verioned using [Semantic Versioning](https://semver.org/) and released to `npm` automatically using [`semantic-release`](https://github.com/semantic-release/semantic-release).
 
 Commit messages must follow [Angular Commit Message Conventions](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#-commit-message-format) so `semantic-release` knows when to release new versions and what version number to use.
