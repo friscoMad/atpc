@@ -12,14 +12,16 @@
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix",
     "semantic-release": "semantic-release",
-    "dev": "NODE_TLS_REJECT_UNAUTHORIZED='0' npx ts-node --esm src/index.ts"
+    "dev": "NODE_TLS_REJECT_UNAUTHORIZED='0' npx tsx src/index.ts"
   },
   "files": [
     "dist"
   ],
   "keywords": [],
   "author": "Ramiro Aparicio <rapariciog@gmail.com>",
-  "contributors": ["Tim Rogers <me@timrogers.co.uk>"],
+  "contributors": [
+    "Tim Rogers <me@timrogers.co.uk>"
+  ],
   "license": "MIT",
   "dependencies": {
     "@fast-csv/parse": "^4.3.6",
@@ -51,7 +53,7 @@
     "eslint-plugin-prettier": "^5.0.0",
     "prettier": "^3.0.0",
     "semantic-release": "^22.0.5",
-    "ts-node": "^10.9.1",
+    "tsx": "^4.7.0",
     "typescript": "^5.1.6"
   }
 }

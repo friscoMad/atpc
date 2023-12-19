@@ -86,9 +86,15 @@ This report does need your Schwab data to run, you can download it from https://
 This report crosses data from your payroll and Schwab and tells you the number of RSUs vested per month how many were sold/kept (and price) based on Schwab data and the amount (money)
 reported in your payroll (as sold/kept and as taxes), it also does the calculation of the conversion rate for the payroll info as the sold/kept rate should match.
 You can also pass an API token for https://exchangerate.host/ to be able to pull exchange rates for the vesting days and compare them with the calculated ones.
-There is a known issue with how the payroll was created and Affirm has always created the payroll wrong reporting as sold the number of RSUs that were kept (that usually is higher) that's why another extra couple of columns is added with the inverted exchange rate as otherwise it will never match.
 
 ![image](https://github.com/friscoMad/atpc/assets/487098/23214c25-6836-4621-9ad2-bfc57d48604f)
+
+#### Sallary
+
+```npm run dev check sallary```
+
+This report will show you an estimation of the gross sallary based on each month payroll.
+It does account for Antiguedad and Sodexo fields (only resturant if you have others please let me know)
 
 ## Contributing
 

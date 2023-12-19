@@ -12,8 +12,8 @@ import { readPayroll, DATA_PATH } from '../../paths.js';
 import chalk from 'chalk';
 
 const command = new commander.Command();
-const soldDesc = ['Especies.Si.RSUs Dep', 'ESPECIES.SI.RSUS DEP'];
-const keptDesc = ['RSUs reportadas', 'RSUS REPORTADAS'];
+const soldDesc = ['RSUs reportadas', 'RSUS REPORTADAS'];
+const keptDesc = ['Especies.Si.RSUs Dep', 'ESPECIES.SI.RSUS DEP'];
 const retentionDesc = ['Prod.especie'];
 
 interface Arguments {
@@ -41,12 +41,10 @@ command
           'Sold Schwab',
           'Kept Schwab',
           'Sold(Payroll)',
-          'Taxes(Payroll)',
           'Kept(Payroll)',
+          'Especies(Payroll)',
           '$/€ Sold',
           '$/€ Kept',
-          '$/€ Sold(inverted)',
-          '$/€ Kept(inverted)',
           '$/€ Public',
         ],
       });
@@ -61,36 +59,26 @@ command
         const keptPayroll =
           entries.find((entry) => keptDesc.includes(entry.desc))?.income ?? 0;
         const forexSold = entry.price.mul(entry.sold).div(soldPayroll).toPrecision(5);
-        const forexSoldInv = entry.price.mul(entry.sold).div(keptPayroll).toPrecision(5);
         const forexKept = entry.price
           .mul(entry.deposited)
           .div(keptPayroll)
-          .toPrecision(5);
-        const forexKeptInv = entry.price
-          .mul(entry.deposited)
-          .div(soldPayroll)
           .toPrecision(5);
         let rate = 'N/A';
         if (opts.api) {
           const dayRate = await getRate(entry.date, opts.api);
           rate = new Decimal(1).div(dayRate).toPrecision(5);
         }
-        let color = (value: string) => chalk.green(value);
-        if (forexSold != forexKept) {
-          color = (value: string) => chalk.red(value);
-        }
+        let colorizeForex = colorize(forexSold, forexKept)
         tableByMonth.push([
           month,
           (entry.deposited + entry.sold).toString(),
           `${entry.sold} - $${entry.price.mul(entry.sold)}`,
           `${entry.deposited} - $${entry.price.mul(entry.deposited)}`,
-          soldPayroll.toString(),
-          getRetentionWithColor(entries, soldPayroll),
-          keptPayroll.toString(),
-          `${color(forexSold)}`,
-          `${color(forexKept)}`,
-          forexSoldInv.toString(),
-          forexKeptInv.toString(),
+          soldPayroll.toString() + "€",
+          keptPayroll.toString() + "€",
+          getRetentionWithColor(entries, keptPayroll),
+          `${colorizeForex(forexSold)}`,
+          `${colorizeForex(forexKept)}`,
           rate,
         ]);
       }
@@ -131,7 +119,7 @@ class SchwabEntry {
 function getRetentionWithColor(entries: PayrollEntry[], soldPayroll: number): string {
   const retentionPayroll =
     entries.find((entry) => retentionDesc.includes(entry.desc))?.retention ?? 0;
-  let retentionColor = retentionPayroll.toString();
+  let retentionColor = retentionPayroll.toString()+ "€";
   if (retentionPayroll == soldPayroll) {
     retentionColor = chalk.green(retentionColor);
   } else {
@@ -199,6 +187,14 @@ async function getRate(date: Date, api: string): Promise<number> {
   const response = await axios.get(url);
   const parsedResponse = response.data as RateResponse;
   return parsedResponse.quotes.USDEUR;
+}
+
+function colorize(val1: string, val2: string) : (string) => string {
+  let color = (value: string) => chalk.green(value);
+  if (val1 != val2) {
+    color = (value: string) => chalk.red(value);
+  }
+  return color
 }
 
 function clone(original: SchwabEntry): SchwabEntry {

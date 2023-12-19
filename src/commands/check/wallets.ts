@@ -23,7 +23,7 @@ command
       const keys = Array.from(wallets.keys());
       const walletsPerTypeAndMonth = Array.from(wallets.entries()).reduce(
         (map, entry) => {
-          console.log(entry[0]);
+          //console.log(entry[0]);
           map.set(entry[0], getTotalByMonth(entry[1]));
           return map;
         },
