@@ -4,6 +4,7 @@ import { readFileSync, readdirSync } from 'fs';
 import path from 'path';
 import { Decimal } from 'decimal.js';
 import axios from 'axios';
+import flatCache from 'flat-cache';
 
 import type { PayrollEntry, SchwabTransaction } from '../../models.js';
 import { actionRunner, dateFormat } from '../../utils.js';
@@ -48,7 +49,7 @@ command
           '$/€ Public',
         ],
       });
-
+      const cache = flatCache.load('rates');
       for (const monthEntries of payroll) {
         const [month, entries] = monthEntries;
         const entry = schwabByMonth.get(month);
@@ -58,29 +59,37 @@ command
           entries.find((entry) => soldDesc.includes(entry.desc))?.income ?? 0;
         const keptPayroll =
           entries.find((entry) => keptDesc.includes(entry.desc))?.income ?? 0;
-        const forexSold = entry.price.mul(entry.sold).div(soldPayroll).toPrecision(5);
+        const forexSoldDec = entry.price.mul(entry.sold).div(soldPayroll);
+        const forexSold = forexSoldDec.toPrecision(5);
         const forexKept = entry.price
           .mul(entry.deposited)
           .div(keptPayroll)
           .toPrecision(5);
+        const colorizeForex = colorize(forexSold, forexKept);
         let rate = 'N/A';
-        if (opts.api) {
-          const dayRate = await getRate(entry.date, opts.api);
-          rate = new Decimal(1).div(dayRate).toPrecision(5);
+        const dayRate = await getCachedRate(entry.date, opts.api, cache);
+        if (dayRate != null) {
+          const invertedRate = new Decimal(1).div(dayRate);
+          rate = invertedRate.toPrecision(5);
+          if (invertedRate.minus(forexSoldDec).abs() > new Decimal(0.01)) {
+            rate = chalk.red(rate);
+          } else {
+            rate = chalk.green(rate);
+          }
         }
-        let colorizeForex = colorize(forexSold, forexKept)
         tableByMonth.push([
           month,
           (entry.deposited + entry.sold).toString(),
           `${entry.sold} - $${entry.price.mul(entry.sold)}`,
           `${entry.deposited} - $${entry.price.mul(entry.deposited)}`,
-          soldPayroll.toString() + "€",
-          keptPayroll.toString() + "€",
+          soldPayroll.toString() + '€',
+          keptPayroll.toString() + '€',
           getRetentionWithColor(entries, keptPayroll),
           `${colorizeForex(forexSold)}`,
           `${colorizeForex(forexKept)}`,
           rate,
         ]);
+        cache.save(true);
       }
       console.log(tableByMonth.toString());
     }),
@@ -119,7 +128,7 @@ class SchwabEntry {
 function getRetentionWithColor(entries: PayrollEntry[], soldPayroll: number): string {
   const retentionPayroll =
     entries.find((entry) => retentionDesc.includes(entry.desc))?.retention ?? 0;
-  let retentionColor = retentionPayroll.toString()+ "€";
+  let retentionColor = retentionPayroll.toString() + '€';
   if (retentionPayroll == soldPayroll) {
     retentionColor = chalk.green(retentionColor);
   } else {
@@ -180,6 +189,22 @@ interface RateResponse {
   quotes: EurRate;
 }
 
+async function getCachedRate(
+  date: Date,
+  api: string | null,
+  cache: flatCache.Cache,
+): Promise<string | null> {
+  const key = date.toISOString();
+  let result = cache.getKey(key);
+  if (result === undefined && api) {
+    result = await getRate(date, api);
+    cache.setKey(key, result);
+  } else if (result === undefined && api == undefined) {
+    result = null;
+  }
+  return result;
+}
+
 async function getRate(date: Date, api: string): Promise<number> {
   const url = `http://api.exchangerate.host/historical?date=${
     date.toISOString().split('T')[0]
@@ -189,12 +214,12 @@ async function getRate(date: Date, api: string): Promise<number> {
   return parsedResponse.quotes.USDEUR;
 }
 
-function colorize(val1: string, val2: string) : (string) => string {
+function colorize(val1: string, val2: string): (string) => string {
   let color = (value: string) => chalk.green(value);
   if (val1 != val2) {
     color = (value: string) => chalk.red(value);
   }
-  return color
+  return color;
 }
 
 function clone(original: SchwabEntry): SchwabEntry {
