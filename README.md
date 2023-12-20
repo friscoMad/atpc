@@ -24,7 +24,7 @@ They should follow the original file name of YYYY_MM_DD_...... to be able to par
 
 After you have all the files in the proper place then run
 
-```npm run dev payroll -- --pasword XXXX```
+```npm run dev payroll -- --password XXXX```
 
 Password is your DNI as it is the one needed to open the files.
 That command will parse your payroll files and store all relevant information in a file named payroll.json in the /data folder
@@ -46,14 +46,14 @@ To remember your login, ATPC stores a `.formanator.json` file in your home direc
 Forma commands:
 * login: Gets the authentication token to be able to run other commands
 * benefits: List a table with all the benefits in your account and the current available balance
-* categoreis: List all categories that can be used to report an expense associated with one of the benefits
+* categories: List all categories that can be used to report an expense associated with one of the benefits (needs a benefit name as parameter: ```npm run dev forma categories -- --benefit Lifestyle```)
 * download: Downloads all the movements in the last 36 months (it can be adjusted with ```-- --months XX```)
 
 The check wallets command requires all data to be downloaded before it can run: `npm run dev forma download`
 
 ### Checks info
 
-Currently 3 checks have been implemented:
+Currently 4 checks have been implemented:
 
 #### Wallets
 
@@ -86,8 +86,6 @@ This report does need your Schwab data to run, you can download it from https://
 This report crosses data from your payroll and Schwab and tells you the number of RSUs vested per month how many were sold/kept (and price) based on Schwab data and the amount (money)
 reported in your payroll (as sold/kept and as taxes), it also does the calculation of the conversion rate for the payroll info as the sold/kept rate should match.
 You can also pass an API token for https://exchangerate.host/ to be able to pull exchange rates for the vesting days and compare them with the calculated ones.
-
-![image](https://github.com/friscoMad/atpc/assets/487098/23214c25-6836-4621-9ad2-bfc57d48604f)
 
 #### Sallary
 
