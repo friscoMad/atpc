@@ -15,6 +15,16 @@ nvm install 18
 nvm use 18
 ```
 
+After that you need to clone this repo in any folder and download the dependencies of the project:
+
+```bash
+git clone https://github.com/friscoMad/atpc.git
+cd atpc
+npm install
+```
+
+And then you should be able to execute the rest of the commands
+
 ## Usage
 
 ### Payroll info
