@@ -18,7 +18,7 @@ const plusDesc = [
   'CESION PRO.IND.',
 ];
 const extraDesc = ['PRORRATA PAGAS EXTRAS'];
-const sodexoDesc = ['TARJ.REST.EXENTA', 'TARJET.REST.EXENTA', '*TARJ.REST.EXENTA'];
+const sodexoDesc = ['TARJ.REST.EXENTA', 'TARJET.REST.EXENTA', '*TARJ.REST.EXENTA', 'CHILDCARE'];
 
 const command = new commander.Command();
 

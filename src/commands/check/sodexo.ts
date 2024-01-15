@@ -7,6 +7,7 @@ import { readPayroll } from '../../paths.js';
 
 const command = new commander.Command();
 const restaurantDesc = ['TARJ.REST.EXENTA', 'TARJET.REST.EXENTA', '*TARJ.REST.EXENTA'];
+const childCareDesc = ['CHILDCARE'];
 
 command
   .name('sodexo')
@@ -16,12 +17,14 @@ command
     actionRunner(async () => {
       const payroll = readPayroll();
       const tableByMonth = new Table({
-        head: ['Month', 'Restaurant'],
+        head: ['Month', 'Restaurant', 'Child'],
       });
       payroll.forEach((entries, month) => {
         const rest =
           entries.find((entry) => restaurantDesc.includes(entry.desc))?.income ?? 0;
-        tableByMonth.push([month, rest.toLocaleString()]);
+        const child =
+        entries.find((entry) => childCareDesc.includes(entry.desc))?.income ?? 0;
+        tableByMonth.push([month, rest.toLocaleString(), child.toLocaleString()]);
       });
       console.log(tableByMonth.toString());
     }),
