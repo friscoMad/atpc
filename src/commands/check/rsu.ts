@@ -11,11 +11,9 @@ import { actionRunner, dateFormat } from '../../utils.js';
 import VERSION from '../../version.js';
 import { readPayroll, DATA_PATH } from '../../paths.js';
 import chalk from 'chalk';
+import { rsuKeptDesc, rsuRetentionDesc, rsuSoldDesc } from '../../payrollDescs.js';
 
 const command = new commander.Command();
-const soldDesc = ['RSUs reportadas', 'RSUS REPORTADAS'];
-const keptDesc = ['Especies.Si.RSUs Dep', 'ESPECIES.SI.RSUS DEP'];
-const retentionDesc = ['Prod.especie'];
 
 interface Arguments {
   api: string | null;
@@ -56,9 +54,9 @@ command
         if (entry == undefined) continue; // If there are no vested RSUs skip the row
 
         const soldPayroll =
-          entries.find((entry) => soldDesc.includes(entry.desc))?.income ?? 0;
+          entries.find((entry) => rsuSoldDesc.includes(entry.desc))?.income ?? 0;
         const keptPayroll =
-          entries.find((entry) => keptDesc.includes(entry.desc))?.income ?? 0;
+          entries.find((entry) => rsuKeptDesc.includes(entry.desc))?.income ?? 0;
         const forexSoldDec = entry.price.mul(entry.sold).div(soldPayroll);
         const forexSold = forexSoldDec.toPrecision(5);
         const forexKept = entry.price
@@ -127,7 +125,7 @@ class SchwabEntry {
 
 function getRetentionWithColor(entries: PayrollEntry[], soldPayroll: number): string {
   const retentionPayroll =
-    entries.find((entry) => retentionDesc.includes(entry.desc))?.retention ?? 0;
+    entries.find((entry) => rsuRetentionDesc.includes(entry.desc))?.retention ?? 0;
   let retentionColor = retentionPayroll.toString() + '€';
   if (retentionPayroll == soldPayroll) {
     retentionColor = chalk.green(retentionColor);
@@ -155,16 +153,18 @@ function readSchwab(): SchwabEntry[] {
     readFileSync(path.join(DATA_PATH, files[0]), { encoding: 'utf-8' }),
   );
   const transactions: SchwabTransaction[] = schwab.Transactions;
-  return transactions.map((transaction) => {
-    const details = transaction.TransactionDetails[0].Details;
-    return new SchwabEntry(
-      transaction.Date,
-      transaction.Symbol,
-      details.NetSharesDeposited,
-      details.SharesSoldWithheldForTaxes,
-      details.FairMarketValuePrice,
-    );
-  });
+  return transactions
+    .filter((transaction) => (transaction.Description = '"Restricted Stock Lapse"'))
+    .map((transaction) => {
+      const details = transaction.TransactionDetails[0].Details;
+      return new SchwabEntry(
+        transaction.Date,
+        transaction.Symbol,
+        details.NetSharesDeposited,
+        details.SharesSoldWithheldForTaxes,
+        details.FairMarketValuePrice,
+      );
+    });
 }
 
 function groupByMonth(data: SchwabEntry[]): Map<string, SchwabEntry> {

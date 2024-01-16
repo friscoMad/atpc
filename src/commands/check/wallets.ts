@@ -8,6 +8,7 @@ import type { Transaction } from '../../forma.js';
 import VERSION from '../../version.js';
 import { readPayroll, readWallets } from '../../paths.js';
 import chalk from 'chalk';
+import { walletsDesc } from '../../payrollDescs.js';
 
 const command = new commander.Command();
 
@@ -36,7 +37,7 @@ command
         head: headers,
       });
       payroll.forEach((entries, month) => {
-        const payrollWallets = entries.find((entry) => entry.desc == 'WALLETS');
+        const payrollWallets = entries.find((entry) => walletsDesc.includes(entry.desc));
         const walletDetail = keys.map((wallet) => {
           return walletsPerTypeAndMonth.get(wallet)?.get(month) ?? new Decimal(0);
         });

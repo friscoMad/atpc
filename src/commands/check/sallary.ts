@@ -7,18 +7,16 @@ import { actionRunner } from '../../utils.js';
 import VERSION from '../../version.js';
 import { readPayroll } from '../../paths.js';
 import { PayrollEntry } from '../../models.js';
-
-const sallaryDesc = ['SALARIO'];
-const antiguedadDesc = ['ANTIGUEDAD'];
-const convenioDesc = ['P/CONVEN.', 'MEJ.ABSOR', 'A CTA.CON'];
-const plusDesc = [
-  'PLUS CONFIDENCIALID.',
-  'PACTO NO COMPETENCIA',
-  'CESION PROP.INDUSTR.',
-  'CESION PRO.IND.',
-];
-const extraDesc = ['PRORRATA PAGAS EXTRAS'];
-const sodexoDesc = ['TARJ.REST.EXENTA', 'TARJET.REST.EXENTA', '*TARJ.REST.EXENTA', 'CHILDCARE'];
+import {
+  antiguedadDesc,
+  convenioDesc,
+  extraDesc,
+  plusDesc,
+  rsuEspp,
+  sallaryDesc,
+  sodexoChildDesc,
+  sodexoRestDesc,
+} from '../../payrollDescs.js';
 
 const command = new commander.Command();
 
@@ -37,6 +35,7 @@ command
         'Pluses',
         'Sodexo',
         'Paga Extra',
+        'ESPP(%)',
         'Total Gross',
         'Anual Gross',
       ];
@@ -52,13 +51,17 @@ command
           entries.find((entry) => extraDesc.includes(entry.desc))?.income ?? 0;
         const convenio = sumByDesc(entries, convenioDesc);
         const plus = sumByDesc(entries, plusDesc);
-        const sodexo = sumByDesc(entries, sodexoDesc);
+        const sodexo = sumByDesc(entries, sodexoRestDesc).plus(
+          sumByDesc(entries, sodexoChildDesc),
+        );
+        const espp = sumByDesc(entries, rsuEspp);
         const total = plus
           .plus(convenio)
           .plus(antiguedad)
           .plus(sallary)
           .plus(extra)
           .plus(sodexo);
+        const esppPercent = espp.div(total).mul(100).toPrecision(2);
         tableByMonth.push([
           month,
           sallary.toString(),
@@ -67,6 +70,7 @@ command
           plus.toString(),
           sodexo.toString(),
           extra.toString(),
+          espp.toString() + ' (' + esppPercent.toString() + '%)',
           total.toString(),
           total.mul(12).round().toString(),
         ]);
