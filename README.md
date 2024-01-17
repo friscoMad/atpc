@@ -29,7 +29,7 @@ And then you should be able to execute the rest of the commands
 
 ### Payroll info
 
-This tool reads the PDFs of your payroll, please download all of them (or the ones that you want to check) and add them to the /data/payroll folder.
+This tool reads the PDFs of your payroll, please download all of them (or the ones that you want to check) and add them to the `data/payroll` folder.
 They should follow the original file name of YYYY_MM_DD_...... to be able to parse the correct month associated with the payroll.
 
 After you have all the files in the proper place then run
