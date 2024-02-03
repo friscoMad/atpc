@@ -6,6 +6,8 @@ export const plusDesc = [
   'PACTO NO COMPETENCIA',
   'CESION PROP.INDUSTR.',
   'CESION PRO.IND.',
+  'PLUS CONFIDENCIALID',
+  'CESION PRO.INT',
 ];
 export const extraDesc = ['PRORRATA PAGAS EXTRAS'];
 export const sodexoRestDesc = [
